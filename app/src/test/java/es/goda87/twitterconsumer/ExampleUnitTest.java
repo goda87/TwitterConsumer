@@ -1,4 +1,4 @@
-package es.goda87.twitterconsumer.twitterconsumer;
+package es.goda87.twitterconsumer;
 
 import org.junit.Test;
 
