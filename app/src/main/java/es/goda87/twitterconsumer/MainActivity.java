@@ -23,13 +23,15 @@ import retrofit2.Call;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final int layoutId = R.layout.activity_main;
+
     @BindView(R.id.login_button)
     TwitterLoginButton loginButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(layoutId);
         ButterKnife.bind(this);
         loginButton.setCallback(new Callback<TwitterSession>() {
             @Override
@@ -37,22 +39,8 @@ public class MainActivity extends AppCompatActivity {
                 // Do something with result, which provides a TwitterSession for making API calls
                 Log.d("GODA", "GODA xSession user name: " + result.data.getUserName());
 
-                TwitterApiClient twitterApiClient = TwitterCore.getInstance().getApiClient();
-                StatusesService statusesService = twitterApiClient.getStatusesService();
-                Call<List<Tweet>> call = statusesService.userTimeline(result.data.getUserId(), "",
-                        50, null, null, false, false, true, false);
-                call.enqueue(new Callback<List<Tweet>>() {
-                    @Override
-                    public void success(Result<List<Tweet>> result) {
-
-                        for (Tweet t : result.data)
-                            Log.d("GODA", "GODA tweet text: " + t.text);
-                    }
-
-                    public void failure(TwitterException exception) {
-                        //Do something on failure
-                    }
-                });
+                Intent i = new Intent(getApplicationContext(), TwitterActivity.class);
+                startActivity(i);
 
             }
 
