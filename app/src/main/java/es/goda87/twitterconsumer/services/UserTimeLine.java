@@ -1,6 +1,7 @@
 package es.goda87.twitterconsumer.services;
 
 
+import android.util.Log;
 import android.widget.TextView;
 
 import com.twitter.sdk.android.core.Callback;
@@ -38,16 +39,18 @@ public class UserTimeLine {
                 .observeOn(Schedulers.newThread())
                 .map(new Function<Long, Response<List<Tweet>>>() {
                     @Override
-                    public Response<List<Tweet>> apply(@NonNull Long sinceId) throws Exception {
+                    public Response<List<Tweet>> apply(@NonNull Long untilId) throws Exception {
                         TwitterApiClient twitterApiClient = TwitterCore.getInstance().getApiClient();
                         StatusesService statusesService = twitterApiClient.getStatusesService();
 
+                        Log.d("LAST ITEM", "CALL FOR ID: " + untilId);
+
                         Long id = null;
-                        if (sinceId != 0L) { id = sinceId; }
+                        if (untilId != 0L) { id = untilId; }
 
                         Call<List<Tweet>> call = statusesService.userTimeline(
                                 TwitterCore.getInstance().getSessionManager().getActiveSession().getUserId(),
-                                null, 50, id, null,
+                                null, 50, null, id,
                                 false, false, false, false);
                         return call.execute();
                     }
@@ -62,6 +65,7 @@ public class UserTimeLine {
 
                         for (Tweet tweet : response.body()) {
                             items.add(new TweetTimeLineItem(tweet));
+                            Log.d("ID", "ID: " + tweet.getId());
                         }
                         return items;
                     }

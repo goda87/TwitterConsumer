@@ -40,6 +40,19 @@
             app:layout_constraintRight_toRightOf="parent" />
 
         <TextView
+            android:id="@+id/date"
+            android:text="Mon Jun 12 09:30:59 +0000 2017"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
+            android:textSize="10sp"
+            android:textColor="#866"
+            app:layout_constraintLeft_toRightOf="@+id/author_picture"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/author_name" />
+
+        <TextView
             android:id="@+id/text"
             android:text="This is an example Tweet to check how it looks in the editor :) a little bit longer"
             android:layout_width="0dp"
@@ -48,7 +61,7 @@
             android:layout_marginStart="10dp"
             app:layout_constraintLeft_toRightOf="@+id/author_picture"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/author_name" />
+            app:layout_constraintTop_toBottomOf="@+id/date" />
 
         <FrameLayout
             android:id="@+id/metaInfo"

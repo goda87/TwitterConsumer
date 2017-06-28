@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,12 +24,19 @@ import io.reactivex.subjects.PublishSubject;
 
 public class TimeLineItemAdapter extends RecyclerView.Adapter<TimeLineItemAdapter.Holder> {
 
+    private static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
     private final List<TimeLineItem> items = new ArrayList<>();
     private final PublishSubject<TimeLineItem> onClickSubject = PublishSubject.create();
 
     public void addItems(List<TimeLineItem> newItems) {
         items.addAll(newItems);
         notifyDataSetChanged();
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return items.get(position).getId();
     }
 
     public Observable<TimeLineItem> getItemClicks(){
@@ -47,6 +55,7 @@ public class TimeLineItemAdapter extends RecyclerView.Adapter<TimeLineItemAdapte
         final TimeLineItem item = items.get(position);
         holder.authorName.setText(item.getAuthorName());
         holder.authorTag.setText(item.getAuthorTag());
+        holder.date.setText(item.getDate() != null ? formatter.format(item.getDate().getTime()) : "");
         holder.text.setText(item.getText());
 
         //holder.authorPicture.set(item.getAuthorTag());  //TODO add picture
@@ -67,6 +76,7 @@ public class TimeLineItemAdapter extends RecyclerView.Adapter<TimeLineItemAdapte
     static class Holder extends RecyclerView.ViewHolder {
         @BindView(R.id.author_name) TextView authorName;
         @BindView(R.id.author_tag) TextView authorTag;
+        @BindView(R.id.date) TextView date;
         @BindView(R.id.text) TextView text;
         @BindView(R.id.author_picture) ImageView authorPicture;
 

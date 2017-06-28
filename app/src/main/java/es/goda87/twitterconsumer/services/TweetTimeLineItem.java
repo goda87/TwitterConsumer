@@ -1,6 +1,14 @@
 package es.goda87.twitterconsumer.services;
 
+import android.util.Log;
+
 import com.twitter.sdk.android.core.models.Tweet;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 import es.goda87.twitterconsumer.model.TimeLineItem;
 
@@ -9,6 +17,7 @@ import es.goda87.twitterconsumer.model.TimeLineItem;
  */
 
 public class TweetTimeLineItem implements TimeLineItem {
+    private static final SimpleDateFormat parser = new SimpleDateFormat("EEE MMM d HH:mm:ss Z yyyy", Locale.US);
 
     private Tweet tweet;
 
@@ -38,6 +47,19 @@ public class TweetTimeLineItem implements TimeLineItem {
 
     @Override
     public Long getId() {
-        return null;
+        return tweet.getId();
+    }
+
+    @Override
+    public Calendar getDate() { // Mon Jun 12 09:30:59 +0000 2017
+        Calendar c = null;
+        try {
+            Date d = parser.parse(tweet.createdAt);
+            c = Calendar.getInstance();
+            c.setTime(d);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return c;
     }
 }

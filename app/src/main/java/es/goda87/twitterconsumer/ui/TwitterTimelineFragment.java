@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,8 @@ import es.goda87.twitterconsumer.model.TimeLineItem;
 import es.goda87.twitterconsumer.services.UserTimeLine;
 import es.goda87.twitterconsumer.ui.viewadapters.TimeLineItemAdapter;
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
@@ -33,6 +36,7 @@ public class TwitterTimelineFragment extends Fragment {
     RecyclerView layoutTweetsList;
 
     TimeLineItemAdapter adapter;
+    Observable<Long> o;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -54,54 +58,40 @@ public class TwitterTimelineFragment extends Fragment {
                     }
                 });
 
-        //layoutTweetsList.addOnScrollListener();
+        o = Observable.create(new ObservableOnSubscribe<Long>() {
+            @Override
+            public void subscribe(@NonNull final ObservableEmitter<Long> observableEmitter) throws Exception {
+                observableEmitter.onNext(0L);
+                layoutTweetsList.addOnScrollListener(new RecyclerView.OnScrollListener() {
+
+                    @Override
+                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                        super.onScrolled(recyclerView, dx, dy);
+                        LinearLayoutManager manager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                        int lastPosition = manager.findLastVisibleItemPosition();
+                        int itemCount = manager.getItemCount();
+
+                        if (itemCount - lastPosition < 5) {
+                            RecyclerView.Adapter adapter = recyclerView.getAdapter();
+                            Long lastItem = adapter.getItemId(adapter.getItemCount() - 1);
+                            observableEmitter.onNext(lastItem);
+                        }
+
+                    }
+                });
+            }
+        }).distinct();
         layoutTweetsList.setAdapter(adapter);
 
-        return view;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        Observable<Long> o = Observable.just(0L);
-
         Observable<List<TimeLineItem>> op = UserTimeLine.paginatedThings(o);
-
         op.observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<List<TimeLineItem>>() {
                     @Override
                     public void accept(@NonNull List<TimeLineItem> timeLineItems) throws Exception {
-//                        for (TimeLineItem tli : timeLineItems) {
-//                            TextView textView = new TextView(getContext());
-//                            textView.setText(tli.getText());
-//                            layoutTweetsList.addView(textView);
-//                        }
                         adapter.addItems(timeLineItems);
                     }
                 });
 
-//        TwitterApiClient twitterApiClient = TwitterCore.getInstance().getApiClient();
-//        StatusesService statusesService = twitterApiClient.getStatusesService();
-//
-//        Call<List<Tweet>> call = statusesService.userTimeline(
-//                TwitterCore.getInstance().getSessionManager().getActiveSession().getUserId(),
-//                null, 50, null, null,
-//                false, false, false, false);
-//
-//        call.enqueue(new Callback<List<Tweet>>() {
-//            @Override
-//            public void success(Result<List<Tweet>> result) {
-//                for (Tweet t : result.data) {
-//                    TextView textView = new TextView(getContext());
-//                    textView.setText(t.text);
-//                    layoutTweetsList.addView(textView);
-//                }
-//            }
-//
-//            public void failure(TwitterException exception) {
-//                //Do something on failure
-//            }
-//        });
+        return view;
     }
 }
