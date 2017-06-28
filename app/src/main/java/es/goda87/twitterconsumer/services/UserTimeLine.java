@@ -19,9 +19,12 @@ import java.util.concurrent.Callable;
 
 import es.goda87.twitterconsumer.model.TimeLineItem;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
+import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -31,95 +34,38 @@ import retrofit2.Response;
  */
 public class UserTimeLine {
     public static Observable<List<TimeLineItem>> paginatedThings(final Observable<Long> onNextObservable) {
-
-        Observable<List<TimeLineItem>> responseObservable =
-                Observable.fromCallable(new Callable<List<TimeLineItem>>() {
+        return onNextObservable
+                .observeOn(Schedulers.newThread())
+                .map(new Function<Long, Response<List<Tweet>>>() {
                     @Override
-                    public List<TimeLineItem> call() throws Exception {
+                    public Response<List<Tweet>> apply(@NonNull Long sinceId) throws Exception {
                         TwitterApiClient twitterApiClient = TwitterCore.getInstance().getApiClient();
                         StatusesService statusesService = twitterApiClient.getStatusesService();
+
+                        Long id = null;
+                        if (sinceId != 0L) { id = sinceId; }
+
                         Call<List<Tweet>> call = statusesService.userTimeline(
                                 TwitterCore.getInstance().getSessionManager().getActiveSession().getUserId(),
-                                null, 50, null, null,
+                                null, 50, id, null,
                                 false, false, false, false);
-                        Response<List<Tweet>> response = call.execute();
+                        return call.execute();
+                    }
+                }).map(new Function<Response<List<Tweet>>, List<TimeLineItem>>() {
+                    @Override
+                    public List<TimeLineItem> apply(@NonNull Response<List<Tweet>> response) throws Exception {
+
+                        if (response.body() == null) {
+                            return new ArrayList<TimeLineItem>();
+                        }
                         List<TimeLineItem> items = new ArrayList<TimeLineItem>(response.body().size());
 
                         for (Tweet tweet : response.body()) {
                             items.add(new TweetTimeLineItem(tweet));
                         }
-
                         return items;
                     }
                 });
-
-        onNextObservable
-                .observeOn(Schedulers.newThread())
-                .subscribe(new Consumer<Long>() {
-                    @Override
-                    public void accept(Long aLong) throws Exception {
-
-
-
-
-
-                    }
-                });
-
-
-
-        TwitterApiClient twitterApiClient = TwitterCore.getInstance().getApiClient();
-        StatusesService statusesService = twitterApiClient.getStatusesService();
-        Call<List<Tweet>> call = statusesService.userTimeline(
-                TwitterCore.getInstance().getSessionManager().getActiveSession().getUserId(),
-                null, 50, null, null,
-                false, false, false, false);
-
-        Response<List<Tweet>> response = call.execute();
-
-
-        return Observable.fromCallable(new Callable<List<TimeLineItem>>() {
-            @Override
-            public List<Tweet> call() throws Exception {
-                return null;
-            }
-        });
-
-
-//        return Observable.create(new Observable.onSubscribe<List<Tweet>>() {
-//            @Override
-//            public void call(final Subscriber<? super List<Tweet>> subscriber) {
-//
-//                onNextObservable.subscribe(new Observer<Long>() {
-//                    int latestPage = -1;
-//
-//                    @Override
-//                    public void onSubscribe(Disposable disposable) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onNext(Long aLong) {
-//                        latestPage++;
-//                        List<String> pageItems = new ArrayList<String>();
-//                        for (int i = 0; i < 10; i++) {
-//                            pageItems.add("page " + latestPage + " item " + i);
-//                        }
-//                        subscriber.onNext(pageItems);
-//                    }
-//
-//                    @Override
-//                    public void onError(Throwable e) {
-//                        subscriber.onError(e);
-//                    }
-//
-//                    @Override
-//                    public void onComplete() {
-//
-//                    }
-//                });
-//            }
-//        });
     }
 
 }

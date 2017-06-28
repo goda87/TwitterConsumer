@@ -28,6 +28,7 @@ public class TimeLineItemAdapter extends RecyclerView.Adapter<TimeLineItemAdapte
 
     public void addItems(List<TimeLineItem> newItems) {
         items.addAll(newItems);
+        notifyDataSetChanged();
     }
 
     public Observable<TimeLineItem> getItemClicks(){
